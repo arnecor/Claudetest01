@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Starts the Next.js dev server through the VS Code debugger.
+      // Breakpoints in API routes and server components work out of the box.
+      // Output (console.log / console.error) appears in the Debug Console.
+      "name": "Next.js: debug server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "serverReadyAction": {
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    },
+    {
+      // Attaches to an already-running dev server.
+      // Start the server with:  NODE_OPTIONS='--inspect' npm run dev
+      // Then press F5 with this configuration selected.
+      "name": "Next.js: attach to running server",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
