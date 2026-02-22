@@ -54,6 +54,13 @@ function toDisplay(iso: string): string {
   return `${dd}.${mm}.${yyyy}`;
 }
 
+/** Returns true if the ISO date is before the start of today (local time). */
+function isExpired(iso: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(iso) < today;
+}
+
 /**
  * Formats a raw digit string into "dd.mm.yyyy" progressively.
  * Dots are inserted automatically as the user types.
@@ -274,11 +281,16 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
-                <tr key={user.id} style={styles.tr}>
+              {users.map((user) => {
+                const expired = isExpired(user.expiresAt);
+                return (
+                <tr key={user.id} style={expired ? styles.trExpired : styles.tr}>
                   <td style={styles.td}>{user.name}</td>
                   <td style={styles.td}>{user.email}</td>
-                  <td style={styles.td}>{toDisplay(user.expiresAt)}</td>
+                  <td style={styles.td}>
+                    {toDisplay(user.expiresAt)}
+                    {expired && <span style={styles.expiredBadge}>Expired</span>}
+                  </td>
                   <td style={styles.td}>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td style={styles.td}>
                     <button
@@ -291,7 +303,8 @@ export default function UsersPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -349,4 +362,15 @@ const styles = {
   th: { textAlign: 'left' as const, padding: '0.5rem', borderBottom: '2px solid #e5e7eb', fontWeight: 600 },
   td: { padding: '0.5rem', borderBottom: '1px solid #f3f4f6' },
   tr: {},
+  trExpired: { background: '#fef2f2' },
+  expiredBadge: {
+    marginLeft: '0.5rem',
+    padding: '0.1rem 0.4rem',
+    background: '#dc2626',
+    color: '#fff',
+    borderRadius: 4,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    verticalAlign: 'middle',
+  },
 } as const;
