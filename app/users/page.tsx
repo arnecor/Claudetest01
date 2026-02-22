@@ -17,15 +17,57 @@ interface User {
   id: string;
   name: string;
   email: string;
+  expiresAt: string;
   createdAt: string;
 }
 
 interface FormState {
   name: string;
   email: string;
+  expiresAt: string;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Date helpers ───────────────────────────────────────────────────────────────
+
+/** Returns today + 1 year as "dd.mm.yyyy". */
+function defaultExpiryDate(): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
+/** Converts a "dd.mm.yyyy" string to an ISO date string for the API. */
+function toIso(ddmmyyyy: string): string {
+  const [dd, mm, yyyy] = ddmmyyyy.split('.');
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd)).toISOString();
+}
+
+/** Converts an ISO date string (from API) back to "dd.mm.yyyy" for display. */
+function toDisplay(iso: string): string {
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
+/**
+ * Formats a raw digit string into "dd.mm.yyyy" progressively.
+ * Dots are inserted automatically as the user types.
+ * e.g. "03" → "03.", "0312" → "03.12.", "03122027" → "03.12.2027"
+ */
+function formatExpiryInput(raw: string): string {
+  // Strip everything that is not a digit
+  const digits = raw.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
+}
+
+// ── API calls ─────────────────────────────────────────────────────────────────
 
 async function fetchUsers(): Promise<User[]> {
   const res = await fetch('/api/users', { cache: 'no-store' });
@@ -34,10 +76,15 @@ async function fetchUsers(): Promise<User[]> {
 }
 
 async function createUser(data: FormState): Promise<User> {
+  const payload = {
+    name: data.name,
+    email: data.email,
+    expiresAt: toIso(data.expiresAt),
+  };
   const res = await fetch('/api/users', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
   const json = (await res.json()) as User & { error?: string };
   if (!res.ok) throw new Error(json.error ?? 'Failed to create user');
@@ -54,7 +101,7 @@ async function deleteUser(id: string): Promise<void> {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const EMPTY_FORM: FormState = { name: '', email: '' };
+const EMPTY_FORM: FormState = { name: '', email: '', expiresAt: defaultExpiryDate() };
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -90,6 +137,12 @@ export default function UsersPage() {
     if (!form.name.trim()) return 'Name is required';
     if (!form.email.trim()) return 'Email is required';
     if (!form.email.includes('@')) return 'Please enter a valid email address';
+    if (form.expiresAt.length !== 10) return 'Expiry date must be in the format dd.mm.yyyy';
+    const [dd, mm, yyyy] = form.expiresAt.split('.').map(Number);
+    const date = new Date(yyyy, mm - 1, dd);
+    if (isNaN(date.getTime()) || date.getDate() !== dd || date.getMonth() + 1 !== mm) {
+      return 'Expiry date is not a valid date';
+    }
     return null;
   }
 
@@ -111,6 +164,13 @@ export default function UsersPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // ── Expiry date input handler ─────────────────────────────────────────────
+
+  function handleExpiryChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatExpiryInput(e.target.value);
+    setForm((f) => ({ ...f, expiresAt: formatted }));
   }
 
   // ── Delete user ─────────────────────────────────────────────────────────────
@@ -164,6 +224,20 @@ export default function UsersPage() {
             />
           </label>
 
+          <label style={styles.label}>
+            Expiry date
+            <input
+              style={styles.input}
+              type="text"
+              value={form.expiresAt}
+              onChange={handleExpiryChange}
+              placeholder="dd.mm.yyyy"
+              maxLength={10}
+              disabled={submitting}
+              aria-required="true"
+            />
+          </label>
+
           {formError && <p style={styles.error} role="alert">{formError}</p>}
 
           <button style={styles.button} type="submit" disabled={submitting}>
@@ -194,6 +268,7 @@ export default function UsersPage() {
               <tr>
                 <th style={styles.th}>Name</th>
                 <th style={styles.th}>Email</th>
+                <th style={styles.th}>Expires</th>
                 <th style={styles.th}>Created</th>
                 <th style={styles.th}></th>
               </tr>
@@ -203,6 +278,7 @@ export default function UsersPage() {
                 <tr key={user.id} style={styles.tr}>
                   <td style={styles.td}>{user.name}</td>
                   <td style={styles.td}>{user.email}</td>
+                  <td style={styles.td}>{toDisplay(user.expiresAt)}</td>
                   <td style={styles.td}>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td style={styles.td}>
                     <button

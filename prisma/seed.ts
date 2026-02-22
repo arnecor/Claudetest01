@@ -15,12 +15,12 @@ async function main() {
     prisma.user.upsert({
       where: { email: 'alice@example.com' },
       update: {},
-      create: { name: 'Alice', email: 'alice@example.com' },
+      create: { name: 'Alice', email: 'alice@example.com', expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) },
     }),
     prisma.user.upsert({
       where: { email: 'bob@example.com' },
       update: {},
-      create: { name: 'Bob', email: 'bob@example.com' },
+      create: { name: 'Bob', email: 'bob@example.com', expiresAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) },
     }),
   ]);
 

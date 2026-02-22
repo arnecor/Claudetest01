@@ -11,7 +11,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const user = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, email: true, createdAt: true, updatedAt: true },
+      select: { id: true, name: true, email: true, expiresAt: true, createdAt: true, updatedAt: true },
     });
     if (!user) return notFound('User not found');
     return ok(user);
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const user = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, name: true, email: true, createdAt: true, updatedAt: true },
+      select: { id: true, name: true, email: true, expiresAt: true, createdAt: true, updatedAt: true },
     });
 
     return ok(user);

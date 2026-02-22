@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, expiresAt: true, createdAt: true },
     });
     return ok(users);
   } catch (err) {
@@ -18,7 +18,7 @@ export async function GET() {
 }
 
 // ── POST /api/users ───────────────────────────────────────────────────────────
-// Creates a new user. Body: { name: string; email: string }
+// Creates a new user. Body: { name: string; email: string; expiresAt: string }
 export async function POST(request: NextRequest) {
   try {
     const body: unknown = await request.json();
@@ -27,12 +27,13 @@ export async function POST(request: NextRequest) {
       typeof body !== 'object' ||
       body === null ||
       typeof (body as Record<string, unknown>)['name'] !== 'string' ||
-      typeof (body as Record<string, unknown>)['email'] !== 'string'
+      typeof (body as Record<string, unknown>)['email'] !== 'string' ||
+      typeof (body as Record<string, unknown>)['expiresAt'] !== 'string'
     ) {
-      return badRequest('Body must contain name (string) and email (string)');
+      return badRequest('Body must contain name (string), email (string) and expiresAt (string)');
     }
 
-    const { name, email } = body as { name: string; email: string };
+    const { name, email, expiresAt } = body as { name: string; email: string; expiresAt: string };
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim().toLowerCase();
@@ -40,9 +41,12 @@ export async function POST(request: NextRequest) {
     if (!trimmedName) return badRequest('name must not be empty');
     if (!trimmedEmail.includes('@')) return badRequest('email is invalid');
 
+    const expiresAtDate = new Date(expiresAt);
+    if (isNaN(expiresAtDate.getTime())) return badRequest('expiresAt is not a valid date');
+
     const user = await prisma.user.create({
-      data: { name: trimmedName, email: trimmedEmail },
-      select: { id: true, name: true, email: true, createdAt: true },
+      data: { name: trimmedName, email: trimmedEmail, expiresAt: expiresAtDate },
+      select: { id: true, name: true, email: true, expiresAt: true, createdAt: true },
     });
 
     return created(user);
