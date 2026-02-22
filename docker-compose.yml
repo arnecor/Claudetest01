@@ -1,0 +1,41 @@
+services:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       fullstack_app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:     ["CMD-SHELL", "pg_isready -U postgres -d fullstack_app"]
+      interval: 5s
+      timeout:  5s
+      retries:  12
+
+  # ---------------------------------------------------------------------------
+  # Next.js 16 app  (frontend UI + /api/* backend routes in one process)
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context:    .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/fullstack_app?schema=public
+      NODE_ENV:     production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

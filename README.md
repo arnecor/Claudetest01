@@ -19,8 +19,62 @@ Next.js 16 · React 19 · TypeScript · Prisma 7 · PostgreSQL
 
 ## Prerequisites
 
+### For local development
 - Node.js ≥ 18
 - PostgreSQL running locally (or a connection string to a remote instance)
+
+### For Docker
+- Docker ≥ 24 with the Compose plugin (`docker compose`)
+
+---
+
+## Running with Docker (recommended)
+
+### 1. Start all services
+
+```bash
+docker compose up --build
+```
+
+This single command will:
+1. Build the Next.js image (installs deps, generates Prisma client, runs `next build`)
+2. Pull and start PostgreSQL 16
+3. Sync the database schema via `prisma db push`
+4. Start the Next.js production server
+
+### 2. Local URLs
+
+| Service | URL |
+|---------|-----|
+| **App** (frontend + API) | http://localhost:3000 |
+| **API – list users** | http://localhost:3000/api/users |
+| **PostgreSQL** | `localhost:5432` (user: `postgres`, password: `password`, db: `fullstack_app`) |
+
+### 3. Stop & tear down
+
+```bash
+# Stop containers (data volume is preserved)
+docker compose down
+
+# Stop containers AND delete the database volume
+docker compose down -v
+```
+
+### 4. (Optional) Seed the database inside Docker
+
+```bash
+docker compose exec app npx tsx prisma/seed.ts
+```
+
+### Service architecture
+
+This project is a **unified Next.js monorepo** — the same process serves both the
+React UI and the `/api/*` routes. Docker therefore runs two containers:
+
+| Container | Image | Port |
+|-----------|-------|------|
+| `app` | `claudetest01-app` | 3000 |
+| `db` | `postgres:16-alpine` | 5432 |
 
 ---
 
@@ -109,6 +163,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   ├── schema.prisma             # Data model
 │   └── seed.ts                   # Optional seed script
 ├── prisma.config.ts              # Prisma 7 config (datasource URL, paths)
+├── Dockerfile                    # Multi-stage Next.js image
+├── docker-compose.yml            # app + db services
+├── docker-entrypoint.sh          # Runs prisma db push then next start
+├── .dockerignore
 ├── .env                          # Local secrets – never commit!
 ├── .env.example                  # Safe template to commit
 ├── .prettierrc
