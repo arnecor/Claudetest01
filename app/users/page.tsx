@@ -208,6 +208,7 @@ export default function UsersPage() {
           <label style={styles.label}>
             Name
             <input
+              className="styled-input"
               style={styles.input}
               type="text"
               value={form.name}
@@ -221,6 +222,7 @@ export default function UsersPage() {
           <label style={styles.label}>
             Email
             <input
+              className="styled-input"
               style={styles.input}
               type="email"
               value={form.email}
@@ -234,6 +236,7 @@ export default function UsersPage() {
           <label style={styles.label}>
             Expiry date
             <input
+              className="styled-input"
               style={styles.input}
               type="text"
               value={form.expiresAt}
@@ -245,9 +248,14 @@ export default function UsersPage() {
             />
           </label>
 
-          {formError && <p style={styles.error} role="alert">{formError}</p>}
+          {formError && (
+            <p style={styles.error} role="alert">
+              <span style={styles.errorIcon}>!</span>
+              {formError}
+            </p>
+          )}
 
-          <button style={styles.button} type="submit" disabled={submitting}>
+          <button className="btn-primary" style={styles.button} type="submit" disabled={submitting}>
             {submitting ? 'Creating…' : 'Create user'}
           </button>
         </form>
@@ -257,20 +265,24 @@ export default function UsersPage() {
       <section style={styles.card}>
         <div style={styles.listHeader}>
           <h2 style={styles.subheading}>All users</h2>
-          <button style={{ ...styles.button, ...styles.buttonSmall }} onClick={() => void loadUsers()}>
-            Refresh
+          <button
+            className="btn-secondary"
+            style={{ ...styles.button, ...styles.buttonSecondary, ...styles.buttonSmall }}
+            onClick={() => void loadUsers()}
+          >
+            ↻ Refresh
           </button>
         </div>
 
         {loading && <p style={styles.muted}>Loading…</p>}
-        {loadError && <p style={styles.error}>{loadError}</p>}
+        {loadError && <p style={styles.error}><span style={styles.errorIcon}>!</span>{loadError}</p>}
 
         {!loading && !loadError && users.length === 0 && (
           <p style={styles.muted}>No users yet. Create one above!</p>
         )}
 
         {!loading && users.length > 0 && (
-          <table style={styles.table}>
+          <table className="user-table" style={styles.table}>
             <thead>
               <tr>
                 <th style={styles.th}>Name</th>
@@ -284,25 +296,33 @@ export default function UsersPage() {
               {users.map((user) => {
                 const expired = isExpired(user.expiresAt);
                 return (
-                <tr key={user.id} style={expired ? styles.trExpired : styles.tr}>
-                  <td style={styles.td}>{user.name}</td>
-                  <td style={styles.td}>{user.email}</td>
-                  <td style={styles.td}>
-                    {toDisplay(user.expiresAt)}
-                    {expired && <span style={styles.expiredBadge}>Expired</span>}
-                  </td>
-                  <td style={styles.td}>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td style={styles.td}>
-                    <button
-                      style={{ ...styles.button, ...styles.buttonDanger, ...styles.buttonSmall }}
-                      onClick={() => void handleDelete(user.id)}
-                      disabled={deletingId === user.id}
-                      aria-label={`Delete ${user.name}`}
-                    >
-                      {deletingId === user.id ? '…' : 'Delete'}
-                    </button>
-                  </td>
-                </tr>
+                  <tr
+                    key={user.id}
+                    className={expired ? 'expired-row' : ''}
+                    style={expired ? styles.trExpired : styles.tr}
+                  >
+                    <td style={styles.td}>{user.name}</td>
+                    <td style={styles.td}>{user.email}</td>
+                    <td style={styles.td}>
+                      {toDisplay(user.expiresAt)}
+                      {expired
+                        ? <span style={styles.expiredBadge}>Expired</span>
+                        : <span style={styles.activeBadge}>Active</span>
+                      }
+                    </td>
+                    <td style={styles.td}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td style={styles.td}>
+                      <button
+                        className="btn-danger"
+                        style={{ ...styles.button, ...styles.buttonDanger, ...styles.buttonSmall }}
+                        onClick={() => void handleDelete(user.id)}
+                        disabled={deletingId === user.id}
+                        aria-label={`Delete ${user.name}`}
+                      >
+                        {deletingId === user.id ? '…' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -317,60 +337,162 @@ export default function UsersPage() {
 
 const styles = {
   main: {
-    maxWidth: 720,
+    maxWidth: 900,
     margin: '0 auto',
-    padding: '2rem 1rem',
-    fontFamily: 'system-ui, sans-serif',
-    color: '#111',
+    padding: '2.5rem 1.5rem',
+    fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+    color: '#374151',
+    minHeight: '100vh',
   },
-  heading: { fontSize: '2rem', fontWeight: 700, marginBottom: '1.5rem' },
-  subheading: { fontSize: '1.2rem', fontWeight: 600, marginBottom: '1rem' },
-  card: {
-    background: '#fff',
-    border: '1px solid #e5e7eb',
-    borderRadius: 8,
-    padding: '1.5rem',
+  heading: {
+    fontSize: '2rem',
+    fontWeight: 700,
+    color: '#0F172A',
     marginBottom: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+    letterSpacing: '-0.02em',
   },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '1rem' },
-  label: { display: 'flex', flexDirection: 'column' as const, gap: '0.25rem', fontSize: '0.9rem', fontWeight: 500 },
+  subheading: {
+    fontSize: '1.125rem',
+    fontWeight: 600,
+    color: '#0F172A',
+    margin: 0,
+  },
+  card: {
+    background: '#FFFFFF',
+    border: '1px solid #E2E8F0',
+    borderRadius: 16,
+    padding: '28px 32px',
+    marginBottom: 24,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05)',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 20,
+    marginTop: 20,
+  },
+  label: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: 6,
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: '#374151',
+  },
   input: {
-    padding: '0.5rem 0.75rem',
-    border: '1px solid #d1d5db',
-    borderRadius: 6,
-    fontSize: '1rem',
+    padding: '10px 14px',
+    border: '1.5px solid #D1D5DB',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    color: '#0F172A',
+    background: '#fff',
     outline: 'none',
+    width: '100%',
   },
   button: {
     alignSelf: 'flex-start' as const,
-    padding: '0.5rem 1.25rem',
-    background: '#2563eb',
+    padding: '10px 22px',
+    background: '#22C55E',
     color: '#fff',
     border: 'none',
-    borderRadius: 6,
-    fontSize: '0.9rem',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
     cursor: 'pointer',
-    fontWeight: 500,
+    fontWeight: 600,
+    boxShadow: '0 1px 4px rgba(34,197,94,0.3)',
   },
-  buttonSmall: { padding: '0.25rem 0.75rem', fontSize: '0.8rem' },
-  buttonDanger: { background: '#dc2626' },
-  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.25rem 0' },
-  muted: { color: '#6b7280', fontSize: '0.9rem' },
-  listHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
-  table: { width: '100%', borderCollapse: 'collapse' as const, fontSize: '0.9rem' },
-  th: { textAlign: 'left' as const, padding: '0.5rem', borderBottom: '2px solid #e5e7eb', fontWeight: 600 },
-  td: { padding: '0.5rem', borderBottom: '1px solid #f3f4f6' },
+  buttonSmall: {
+    padding: '7px 14px',
+    fontSize: '0.8125rem',
+  },
+  buttonDanger: {
+    background: '#EF4444',
+    boxShadow: 'none',
+  },
+  buttonSecondary: {
+    background: '#FFFFFF',
+    color: '#22C55E',
+    border: '1.5px solid #22C55E',
+    boxShadow: 'none',
+  },
+  error: {
+    color: '#EF4444',
+    fontSize: '0.875rem',
+    margin: 0,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+  },
+  errorIcon: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 18,
+    height: 18,
+    borderRadius: '50%',
+    background: '#FEE2E2',
+    color: '#DC2626',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  muted: {
+    color: '#9CA3AF',
+    fontSize: '0.9rem',
+    padding: '8px 0',
+  },
+  listHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse' as const,
+    fontSize: '0.9rem',
+  },
+  th: {
+    textAlign: 'left' as const,
+    padding: '10px 12px',
+    background: '#F8FAFC',
+    fontWeight: 600,
+    fontSize: '0.75rem',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    color: '#6B7280',
+    borderBottom: '1px solid #E2E8F0',
+  },
+  td: {
+    padding: '14px 12px',
+    borderBottom: '1px solid #F1F5F9',
+    color: '#374151',
+    verticalAlign: 'middle' as const,
+  },
   tr: {},
-  trExpired: { background: '#fef2f2' },
+  trExpired: {
+    background: '#FFF5F5',
+  },
   expiredBadge: {
-    marginLeft: '0.5rem',
-    padding: '0.1rem 0.4rem',
-    background: '#dc2626',
-    color: '#fff',
-    borderRadius: 4,
+    marginLeft: 8,
+    padding: '2px 10px',
+    background: '#FEE2E2',
+    color: '#DC2626',
+    borderRadius: 999,
     fontSize: '0.75rem',
     fontWeight: 600,
-    verticalAlign: 'middle',
+    verticalAlign: 'middle' as const,
+    display: 'inline-block',
+  },
+  activeBadge: {
+    marginLeft: 8,
+    padding: '2px 10px',
+    background: '#DCFCE7',
+    color: '#16A34A',
+    borderRadius: 999,
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    verticalAlign: 'middle' as const,
+    display: 'inline-block',
   },
 } as const;

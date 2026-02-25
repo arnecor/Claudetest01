@@ -1,13 +1,6 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #F0FDF4;
+  --foreground: #374151;
 }
 
 html,
@@ -19,7 +12,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,8 +28,48 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* ── Input focus styles ────────────────────────────────────────────────────── */
+
+.styled-input {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.styled-input:focus {
+  border-color: #22C55E !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15) !important;
+  outline: none;
+}
+
+/* ── Button hover styles ───────────────────────────────────────────────────── */
+
+.btn-primary,
+.btn-danger,
+.btn-secondary {
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #16A34A !important;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #DC2626 !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #F0FDF4 !important;
+}
+
+/* ── Table row hover ───────────────────────────────────────────────────────── */
+
+.user-table tbody tr {
+  transition: background 0.1s ease;
+}
+
+.user-table tbody tr:hover {
+  background: #F0FDF4 !important;
+}
+
+.user-table tbody tr.expired-row:hover {
+  background: #FECACA !important;
 }
