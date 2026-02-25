@@ -10,7 +10,9 @@
       "Bash(npx prisma generate:*)",
       "Bash(npx tsc:*)",
       "Bash(docker:*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(# Check the vitest config used by @electric-sql as a reference pattern cat /c/Privat/claudetest01/node_modules/@electric-sql/pglite-socket/vitest.config.ts)",
+      "Bash(# Check what version of vitest is in the pglite-socket package cat /c/Privat/claudetest01/node_modules/@electric-sql/pglite-socket/package.json)"
     ]
   }
 }
